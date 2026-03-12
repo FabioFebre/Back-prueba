@@ -10,6 +10,11 @@ module.exports = (sequelize, DataTypes) => {
         onDelete: 'SET NULL',     
         onUpdate: 'CASCADE'
       });
+      
+      Producto.hasMany(models.Variante, {
+        foreignKey: 'productoId',
+        as: 'variantes'
+      });
     }
   }
 

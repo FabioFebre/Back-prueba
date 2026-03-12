@@ -4,17 +4,22 @@ const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class OrdenItem extends Model {
     static associate(models) {
-      // Relación con la tabla Orden (Ordens)
       OrdenItem.belongsTo(models.Orden, {
         foreignKey: 'ordenId',
         as: 'orden',
         onDelete: 'CASCADE'
       });
 
-      // Relación con la tabla Producto
       OrdenItem.belongsTo(models.Producto, {
         foreignKey: 'productoId',
         as: 'producto',
+        onDelete: 'SET NULL'
+      });
+
+      // Nueva asociación
+      OrdenItem.belongsTo(models.Variante, {
+        foreignKey: 'varianteId',
+        as: 'variante',
         onDelete: 'SET NULL'
       });
     }
@@ -29,6 +34,10 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
+    varianteId: {
+      type: DataTypes.INTEGER,
+      allowNull: true
+    },
     cantidad: {
       type: DataTypes.INTEGER,
       allowNull: false,
@@ -38,7 +47,7 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
     },
     talla: {
-      type: DataTypes.STRING, // si usas talla
+      type: DataTypes.STRING,
       allowNull: true
     },
     nombreProducto: {
@@ -48,7 +57,7 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'OrdenItem',
-    tableName: 'ordenitems', // <- asegúrate que coincida con tu tabla en la DB
+    tableName: 'ordenitems',
     freezeTableName: true
   });
 
