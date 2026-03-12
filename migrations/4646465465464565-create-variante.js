@@ -3,7 +3,8 @@
 
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Productos', {
+    await queryInterface.createTable('Variantes', {
+
       id: {
         allowNull: false,
         autoIncrement: true,
@@ -11,38 +12,42 @@ module.exports = {
         type: Sequelize.INTEGER
       },
 
-      nombre: {
-        type: Sequelize.STRING,
-        allowNull: false
-      },
-      imagen: {
-        type: Sequelize.STRING,
-        allowNull: true 
-      },
-      descripcion: {
-        type: Sequelize.TEXT
-      },
-
-      categoriaId: {
+      productoId: {
         type: Sequelize.INTEGER,
+        allowNull: false,
         references: {
-          model: 'Categoria', // asegúrate que tu tabla se llame así
+          model: 'Productos',
           key: 'id'
         },
         onUpdate: 'CASCADE',
-        onDelete: 'SET NULL'
+        onDelete: 'CASCADE'
       },
 
-      composicion: {
-        type: Sequelize.TEXT
+      color: {
+        type: Sequelize.STRING
       },
 
-      info: {
-        type: Sequelize.TEXT
+      talla: {
+        type: Sequelize.STRING
       },
 
-      cuidados: {
-        type: Sequelize.TEXT
+      precio: {
+        type: Sequelize.DECIMAL(10,2)
+      },
+
+      cantidad: {
+        type: Sequelize.INTEGER,
+        defaultValue: 0
+      },
+
+      sku: {
+        type: Sequelize.STRING
+      },
+
+
+      seleccionado: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: false
       },
 
       activo: {
@@ -64,6 +69,6 @@ module.exports = {
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Productos');
+    await queryInterface.dropTable('Variantes');
   }
 };
