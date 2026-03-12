@@ -40,21 +40,6 @@ module.exports = {
         defaultValue: 0
       },
 
-      sku: {
-        type: Sequelize.STRING
-      },
-
-
-      seleccionado: {
-        type: Sequelize.BOOLEAN,
-        defaultValue: false
-      },
-
-      activo: {
-        type: Sequelize.BOOLEAN,
-        defaultValue: true
-      },
-
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE

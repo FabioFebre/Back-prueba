@@ -18,12 +18,6 @@ module.exports = (sequelize, DataTypes) => {
     talla:        DataTypes.STRING,
     precio:       DataTypes.DECIMAL(10, 2),
     cantidad:     { type: DataTypes.INTEGER, defaultValue: 0 },
-    sku:          DataTypes.STRING,
-    imagenes: {
-      type: DataTypes.JSONB         // Postgres nativo, no necesita getter/setter
-    },
-    seleccionado: { type: DataTypes.BOOLEAN, defaultValue: false },
-    activo:       { type: DataTypes.BOOLEAN, defaultValue: true },
   }, {
     sequelize,
     modelName: 'Variante',

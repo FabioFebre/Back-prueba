@@ -22,11 +22,7 @@ router.post('/', auth, hasRole('admin', 'employee'), upload.array('imagenes', 10
       color,
       talla,
       precio: parseFloat(precio),
-      cantidad: parseInt(cantidad),
-      sku,
-      imagenes,
-      seleccionado: seleccionado === 'true' || false,
-      activo: activo === 'true' || true
+      cantidad: parseInt(cantidad)
     });
 
     res.status(201).json(nuevaVariante);
@@ -84,11 +80,7 @@ router.put('/:id', auth, hasRole('admin', 'employee'), upload.array('imagenes', 
       color: color !== undefined ? color : variante.color,
       talla: talla !== undefined ? talla : variante.talla,
       precio: precio !== undefined ? parseFloat(precio) : variante.precio,
-      cantidad: cantidad !== undefined ? parseInt(cantidad) : variante.cantidad,
-      sku: sku !== undefined ? sku : variante.sku,
-      imagenes,
-      seleccionado: seleccionado !== undefined ? (seleccionado === 'true') : variante.seleccionado,
-      activo: activo !== undefined ? (activo === 'true') : variante.activo
+      cantidad: cantidad !== undefined ? parseInt(cantidad) : variante.cantidad
     });
 
     res.json(variante);

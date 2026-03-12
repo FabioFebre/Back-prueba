@@ -15,6 +15,9 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false
       },
+      precio: {
+        type: Sequelize.FLOAT 
+      },
       imagen: {
         type: Sequelize.STRING,
         allowNull: true 

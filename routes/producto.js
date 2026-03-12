@@ -59,9 +59,7 @@ router.post(
           color: v.color,
           talla: v.talla,
           precio: parseFloat(v.precio),
-          cantidad: parseInt(v.cantidad),
-          sku: v.sku || null,
-          activo: v.activo !== undefined ? v.activo : true
+          cantidad: parseInt(v.cantidad)
         }));
 
         variantesCreadas = await Variante.bulkCreate(variantesData, { transaction });
@@ -242,8 +240,7 @@ router.put(
                 color: v.color,
                 talla: v.talla,
                 precio: parseFloat(v.precio),
-                cantidad: parseInt(v.cantidad),
-                sku: v.sku
+                cantidad: parseInt(v.cantidad)
               }, { transaction });
 
               variantesActualizadas.push(variante);
@@ -258,8 +255,8 @@ router.put(
               color: v.color,
               talla: v.talla,
               precio: parseFloat(v.precio),
-              cantidad: parseInt(v.cantidad),
-              sku: v.sku
+              cantidad: parseInt(v.cantidad)
+              
             }, { transaction });
 
             variantesActualizadas.push(nuevaVariante);
