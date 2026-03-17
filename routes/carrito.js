@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { Carrito, CarritoItem, Producto, Usuario } = require('../models');
+const { Carrito, CarritoItem, Producto, Usuario, Variante } = require('../models');
 
 // Obtener carrito completo por usuarioId
 router.get('/:usuarioId', async (req, res) => {
@@ -13,10 +13,16 @@ router.get('/:usuarioId', async (req, res) => {
         {
           model: CarritoItem,
           as: 'items',
-          include: {
-            model: Producto,
-            as: 'producto'
-          }
+          include: [
+            {
+              model: Producto,
+              as: 'producto'
+            },
+            {
+              model: Variante,
+              as: 'variante'
+            }
+          ]
         },
         {
           model: Usuario,
@@ -45,28 +51,59 @@ router.get('/:usuarioId', async (req, res) => {
 // Agregar producto al carrito
 router.post('/add', async (req, res) => {
   try {
-    const { usuarioId, productoId, cantidad, talla, color } = req.body;
+    const {
+      usuarioId,
+      productoId,
+      varianteId = null,
+      cantidad = 1,
+      talla = null,
+      color = null
+    } = req.body;
 
+    if (!usuarioId || !productoId) {
+      return res.status(400).json({ error: 'usuarioId y productoId son requeridos' });
+    }
+
+    // Validar que la variante pertenezca al producto y tenga stock, si viene varianteId
+    if (varianteId) {
+      const variante = await Variante.findOne({
+        where: { id: varianteId, productoId }
+      });
+      if (!variante) {
+        return res.status(400).json({ error: 'Variante no encontrada para el producto' });
+      }
+      if ((variante.cantidad ?? 0) < 1) {
+        return res.status(400).json({ error: 'Sin stock para la variante seleccionada' });
+      }
+    }
+
+    // Asegurar que el carrito exista
     let carrito = await Carrito.findOne({ where: { usuarioId } });
     if (!carrito) carrito = await Carrito.create({ usuarioId });
 
-    let item = await CarritoItem.findOne({
-      where: {
-        carritoId: carrito.id,
-        productoId,
-        talla,
-        color
-      }
-    });
+    // Buscar item existente priorizando varianteId; si no viene, usar talla+color
+    const where = {
+      carritoId: carrito.id,
+      productoId
+    };
+    if (varianteId) {
+      where.varianteId = varianteId;
+    } else {
+      where.talla = talla;
+      where.color = color;
+    }
+
+    let item = await CarritoItem.findOne({ where });
 
     if (item) {
-      item.cantidad += cantidad;
+      item.cantidad += Number(cantidad) || 0;
       await item.save();
     } else {
       item = await CarritoItem.create({
         carritoId: carrito.id,
         productoId,
-        cantidad,
+        varianteId,
+        cantidad: Number(cantidad) || 1,
         talla,
         color
       });
