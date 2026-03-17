@@ -50,6 +50,10 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: true
     },
+    color: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
     nombreProducto: {
       type: DataTypes.STRING,
       allowNull: true

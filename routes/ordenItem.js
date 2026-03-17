@@ -19,10 +19,12 @@ router.post('/', async (req, res) => {
         await OrdenItem.create({
           ordenId: nuevaOrden.id,
           productoId: item.productoId,
+          varianteId: item.varianteId || null,
           nombreProducto: item.nombreProducto,
           cantidad: item.cantidad,
           precio: item.precio,
-          talla: item.talla
+          talla: item.talla || null,
+          color: item.color || null
         });
       }
     }
@@ -53,6 +55,11 @@ router.get('/', async (req, res) => {
             model: require('../models').Producto,
             as: 'producto',
             attributes: ['nombre']
+          },
+          {
+            model: require('../models').Variante,
+            as: 'variante',
+            attributes: ['id', 'talla', 'color', 'precio']
           }
         ]
       });

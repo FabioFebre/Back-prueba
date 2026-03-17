@@ -13,7 +13,19 @@ router.get('/', async (req, res) => {
         {
           model: OrdenItem,
           as: 'items',
-          required: false
+          required: false,
+          include: [
+            {
+              model: Producto,
+              as: 'producto',
+              attributes: ['id', 'nombre']
+            },
+            {
+              model: require('../models').Variante,
+              as: 'variante',
+              attributes: ['id', 'talla', 'color', 'precio']
+            }
+          ]
         },
         {
           model: Usuario,
@@ -49,6 +61,11 @@ router.get('/:id', async (req, res) => {
               model: Producto,
               as: 'producto',
               attributes: ['id', 'nombre']
+            },
+            {
+              model: require('../models').Variante,
+              as: 'variante',
+              attributes: ['id', 'talla', 'color', 'precio']
             }
           ]
         },

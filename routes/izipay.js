@@ -9,8 +9,8 @@ const router = express.Router();
    🔐 CREDENCIALES TEST
    ============================ */
 const USER = "84426447";
-const PASS = "prodpassword_U22t9hmEwHC48TUiQ7zugT066iFokTEbKlyXKJ2WFHsCz";
-const HMAC_TEST = "OnJUyCXQtHqekR3zLpgmKp25jc32vJeARDieRG9SXF0ER";
+const PASS = "testpassword_kvARN8IKqaHBiXcz6WDpYhmqNWhWWLI5pHkH8ejFNLSfn";
+const HMAC_TEST = "RchKwjeyINw0fOWVikl0jrYiAevWsP0KRU535oYgIXNbx";
 
 /* ============================
    Helper: extraer metadata robusta
@@ -354,9 +354,11 @@ router.post("/pago-exitoso", async (req, res) => {
         await OrdenItem.create({
           ordenId: nuevaOrden.id,
           productoId: item.productoId,
+          varianteId: item.varianteId || null,
           cantidad: item.cantidad,
           precio: item.precio,
           talla: item.talla || null,
+          color: item.color || null,
         });
       }
     }
