@@ -367,6 +367,12 @@ router.post("/pago-exitoso", async (req, res) => {
           if (variante) {
             const nuevaCantidad = Math.max(0, (variante.cantidad || 0) - Number(item.cantidad || 0));
             await variante.update({ cantidad: nuevaCantidad });
+
+            // Si todas las variantes del producto quedan sin stock, marca el producto como inactivo
+            const stockRestante = await Variante.sum('cantidad', { where: { productoId: variante.productoId } });
+            if (stockRestante === 0 || stockRestante === null) {
+              await Producto.update({ activo: false }, { where: { id: variante.productoId } });
+            }
           }
         } else if (item.productoId) {
           // Opcional: si manejas stock a nivel producto cuando no hay variante
@@ -374,6 +380,10 @@ router.post("/pago-exitoso", async (req, res) => {
           if (producto && producto.cantidad !== undefined) {
             const nuevaCantidad = Math.max(0, (producto.cantidad || 0) - Number(item.cantidad || 0));
             await producto.update({ cantidad: nuevaCantidad });
+
+            if (nuevaCantidad === 0) {
+              await producto.update({ activo: false });
+            }
           }
         }
       }
