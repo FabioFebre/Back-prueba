@@ -2,7 +2,7 @@
 const express = require('express');
 const axios = require('axios');
 const crypto = require('crypto');
-const { Orden, OrdenItem, Carrito, CarritoItem } = require('../models');
+const { Orden, OrdenItem, Carrito, CarritoItem, Variante, Producto } = require('../models');
 const router = express.Router();
 
 /* ============================
@@ -360,6 +360,22 @@ router.post("/pago-exitoso", async (req, res) => {
           talla: item.talla || null,
           color: item.color || null,
         });
+
+        // Descontar stock de la variante (o del producto si no hay varianteId)
+        if (item.varianteId) {
+          const variante = await Variante.findByPk(item.varianteId);
+          if (variante) {
+            const nuevaCantidad = Math.max(0, (variante.cantidad || 0) - Number(item.cantidad || 0));
+            await variante.update({ cantidad: nuevaCantidad });
+          }
+        } else if (item.productoId) {
+          // Opcional: si manejas stock a nivel producto cuando no hay variante
+          const producto = await Producto.findByPk(item.productoId);
+          if (producto && producto.cantidad !== undefined) {
+            const nuevaCantidad = Math.max(0, (producto.cantidad || 0) - Number(item.cantidad || 0));
+            await producto.update({ cantidad: nuevaCantidad });
+          }
+        }
       }
     }
 
@@ -388,11 +404,11 @@ router.post("/pago-exitoso", async (req, res) => {
     }
 
    ////CAMBIAR RUTA https://frontend-project-p6uq.onrender.com/
-    res.redirect(`https://www.sgstudio.shop/usuario/perfil?ordenId=${nuevaOrden.id}&success=true`);
+    res.redirect(`http://localhost:3000/usuario/perfil?ordenId=${nuevaOrden.id}&success=true`);
 
   } catch (error) {
     console.log("❌ Error en pago-exitoso:", error);
-    res.redirect('https://www.sgstudio.shop/usuario/perfil?success=false');
+    res.redirect('http://localhost:3000/usuario/perfil?success=false');
   }
 });
 
