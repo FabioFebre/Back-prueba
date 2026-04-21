@@ -13,7 +13,7 @@ router.post(
   auth,
   hasRole('admin', 'employee'),
   upload.array('imagen', 10),
-  async (req, res) => {
+  async (req, res) => {   
 
     const transaction = await sequelize.transaction();
 
@@ -227,6 +227,19 @@ router.put(
             ? JSON.parse(variantes)
             : variantes;
 
+        const idsFrontend = variantesParseadas
+          .filter(v => v.id)
+          .map(v => v.id);
+
+        await Variante.destroy({
+          where: {
+            productoId: producto.id,
+            id: {
+              [require('sequelize').Op.notIn]: idsFrontend
+            }
+          },
+          transaction
+        });
         for (const v of variantesParseadas) {
 
           if (v.id) {
