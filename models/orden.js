@@ -31,6 +31,14 @@ module.exports = (sequelize, DataTypes) => {
     apellido: DataTypes.STRING,
     email: DataTypes.STRING,
     telefono: DataTypes.STRING,
+    tipoDocumento: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      validate: {
+        isIn: [['DNI', 'CE']]
+      }
+    },
+    numeroDocumento: DataTypes.STRING,
     pais: DataTypes.STRING,
     departamento: DataTypes.STRING,
     provincia: DataTypes.STRING,

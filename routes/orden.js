@@ -205,7 +205,7 @@ router.delete('/:id', async (req, res) => {
 // Actualizar solo el estado de una orden
 router.put('/:id', async (req, res) => {
   try {
-    const { subtotal, envio, total, estado } = req.body;
+    const { subtotal, envio, total, estado, tipoDocumento, numeroDocumento } = req.body;
 
     const orden = await Orden.findByPk(req.params.id);
     if (!orden) return res.status(404).json({ error: 'Orden no encontrada' });
@@ -214,6 +214,8 @@ router.put('/:id', async (req, res) => {
     orden.envio = envio !== undefined ? envio : orden.envio;
     orden.total = total !== undefined ? total : orden.total;
     orden.estado = estado !== undefined ? estado : orden.estado;
+    orden.tipoDocumento = tipoDocumento !== undefined ? tipoDocumento : orden.tipoDocumento;
+    orden.numeroDocumento = numeroDocumento !== undefined ? numeroDocumento : orden.numeroDocumento;
 
     await orden.save();
 
