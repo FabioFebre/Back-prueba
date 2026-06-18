@@ -234,12 +234,16 @@ router.put('/:id', async (req, res) => {
     if (estado && estadosNotificar.includes(estado.toLowerCase()) && orden.email) {
       const estadoLabels = { enviado: 'Enviado', pagado: 'Pagado', pendiente: 'Pendiente' };
       const label = estadoLabels[estado.toLowerCase()] || estado;
-      const items = await OrdenItem.findAll({ where: { ordenId: orden.id } });
+      const items = await OrdenItem.findAll({
+        where: { ordenId: orden.id },
+        include: [{ model: Producto, as: 'producto', attributes: ['nombre'] }],
+      });
       let itemsHtml = '';
       if (items.length > 0) {
-        itemsHtml = items.map(i =>
-          `<tr><td style="padding:6px 12px;border:1px solid #ddd;">${i.nombreProducto}</td><td style="padding:6px 12px;border:1px solid #ddd;text-align:center;">${i.cantidad}</td><td style="padding:6px 12px;border:1px solid #ddd;text-align:right;">S/ ${parseFloat(i.precio).toFixed(2)}</td></tr>`
-        ).join('');
+        itemsHtml = items.map(i => {
+          const nombre = i.nombreProducto || i.producto?.nombre || 'Producto';
+          return `<tr><td style="padding:6px 12px;border:1px solid #ddd;">${nombre}</td><td style="padding:6px 12px;border:1px solid #ddd;text-align:center;">${i.cantidad}</td><td style="padding:6px 12px;border:1px solid #ddd;text-align:right;">S/ ${parseFloat(i.precio).toFixed(2)}</td></tr>`;
+        }).join('');
       }
       try {
         await transporter.sendMail({
