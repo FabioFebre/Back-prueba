@@ -230,10 +230,34 @@ router.put('/:id', async (req, res) => {
 
     await orden.save();
 
-    const estadosNotificar = ['enviado', 'pagado', 'pendiente'];
-    if (estado && estadosNotificar.includes(estado.toLowerCase()) && orden.email) {
-      const estadoLabels = { enviado: 'Enviado', pagado: 'Pagado', pendiente: 'Pendiente' };
-      const label = estadoLabels[estado.toLowerCase()] || estado;
+    if (estado && orden.email) {
+      const estadoLabels = {
+        'pagado': 'Pagado',
+        'recojo en tienda listo': 'Recojo en tienda listo',
+        'entregado': 'Entregado',
+        'procesando pago': 'Procesando pago',
+        'pago aceptado': 'Pago aceptado',
+        'pedido enviado': 'Pedido enviado',
+        'pedido entregado': 'Pedido entregado',
+        'cancelado': 'Cancelado',
+      };
+
+      const mensajesPorEstado = {
+        'pagado': 'Tu pago ha sido confirmado. Estamos preparando tu pedido.',
+        'recojo en tienda listo': 'Tu pedido ya está listo para recoger en tienda. ¡Te esperamos!',
+        'entregado': 'Has recogido tu pedido. ¡Gracias por tu compra!',
+        'procesando pago': 'Estamos verificando tu pago. Te notificaremos cuando sea confirmado.',
+        'pago aceptado': 'Tu pago ha sido aceptado. Estamos preparando tu pedido para envío.',
+        'pedido enviado': 'Tu pedido ha sido enviado. Pronto lo recibirás.',
+        'pedido entregado': 'Tu pedido ha sido entregado. ¡Gracias por tu compra!',
+        'cancelado': 'Tu pedido ha sido cancelado.',
+      };
+
+      const estadoKey = estado.toLowerCase();
+      const label = estadoLabels[estadoKey] || estado;
+      const mensajePersonalizado = mensajesPorEstado[estadoKey] || `El estado de tu orden ha cambiado a: ${label}`;
+      const esRecojo = orden.metodoEnvio === 'recojo';
+
       const items = await OrdenItem.findAll({
         where: { ordenId: orden.id },
         include: [{ model: Producto, as: 'producto', attributes: ['nombre'] }],
@@ -245,17 +269,29 @@ router.put('/:id', async (req, res) => {
           return `<tr><td style="padding:6px 12px;border:1px solid #ddd;">${nombre}</td><td style="padding:6px 12px;border:1px solid #ddd;text-align:center;">${i.cantidad}</td><td style="padding:6px 12px;border:1px solid #ddd;text-align:right;">S/ ${parseFloat(i.precio).toFixed(2)}</td></tr>`;
         }).join('');
       }
+
+      let infoEnvioHtml = '';
+      if (estadoKey === 'pedido enviado' && !esRecojo) {
+        infoEnvioHtml = `
+          <div style="background:#f0f8ff;padding:12px;border-radius:6px;margin:12px 0;">
+            <p style="margin:0;font-size:14px;"><strong>Método de envío:</strong> ${orden.metodoEnvio === 'olva' ? 'Olva' : orden.metodoEnvio || 'N/D'}</p>
+            <p style="margin:4px 0 0;font-size:14px;"><strong>Dirección:</strong> ${[orden.direccion, orden.distrito, orden.provincia, orden.departamento].filter(Boolean).join(', ') || 'N/D'}</p>
+          </div>
+        `;
+      }
+
       try {
         await transporter.sendMail({
           from: `"SG Studio" <${process.env.SMTP_USER}>`,
           to: orden.email,
-          subject: `Tu orden ${orden.orderId || '#' + orden.id} ha sido actualizada - SG Studio`,
+          subject: `Tu orden ${orden.orderId || '#' + orden.id} - ${label} - SG Studio`,
           html: `
             <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;">
               <h2 style="color:#000;">SG Studio</h2>
               <p>Hola <strong>${orden.nombre || ''}</strong>,</p>
-              <p>El estado de tu orden <strong>${orden.orderId || '#' + orden.id}</strong> ha cambiado a:</p>
+              <p style="font-size:16px;">${mensajePersonalizado}</p>
               <p style="font-size:20px;font-weight:bold;color:#000;">${label}</p>
+              ${infoEnvioHtml}
               ${items.length > 0 ? `
                 <table style="width:100%;border-collapse:collapse;margin:16px 0;">
                   <thead><tr style="background:#f5f5f5;"><th style="padding:8px 12px;border:1px solid #ddd;text-align:left;">Producto</th><th style="padding:8px 12px;border:1px solid #ddd;">Cant.</th><th style="padding:8px 12px;border:1px solid #ddd;text-align:right;">Precio</th></tr></thead>
