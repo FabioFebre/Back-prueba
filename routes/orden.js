@@ -231,78 +231,200 @@ router.put('/:id', async (req, res) => {
     await orden.save();
 
     if (estado && orden.email) {
-      const estadoLabels = {
-        'pagado': 'Pagado',
-        'recojo en tienda listo': 'Recojo en tienda listo',
-        'entregado': 'Entregado',
-        'procesando pago': 'Procesando pago',
-        'pago aceptado': 'Pago aceptado',
-        'pedido enviado': 'Pedido enviado',
-        'pedido entregado': 'Pedido entregado',
-        'cancelado': 'Cancelado',
-      };
-
-      const mensajesPorEstado = {
-        'pagado': 'Tu pago ha sido confirmado. Estamos preparando tu pedido.',
-        'recojo en tienda listo': 'Tu pedido ya está listo para recoger en tienda. ¡Te esperamos!',
-        'entregado': 'Has recogido tu pedido. ¡Gracias por tu compra!',
-        'procesando pago': 'Estamos verificando tu pago. Te notificaremos cuando sea confirmado.',
-        'pago aceptado': 'Tu pago ha sido aceptado. Estamos preparando tu pedido para envío.',
-        'pedido enviado': 'Tu pedido ha sido enviado. Pronto lo recibirás.',
-        'pedido entregado': 'Tu pedido ha sido entregado. ¡Gracias por tu compra!',
-        'cancelado': 'Tu pedido ha sido cancelado.',
-      };
-
       const estadoKey = estado.toLowerCase();
-      const label = estadoLabels[estadoKey] || estado;
-      const mensajePersonalizado = mensajesPorEstado[estadoKey] || `El estado de tu orden ha cambiado a: ${label}`;
       const esRecojo = orden.metodoEnvio === 'recojo';
+      const codigo = orden.orderId || '#' + orden.id;
+      const nombreCliente = orden.nombre || '';
 
       const items = await OrdenItem.findAll({
         where: { ordenId: orden.id },
         include: [{ model: Producto, as: 'producto', attributes: ['nombre'] }],
       });
-      let itemsHtml = '';
-      if (items.length > 0) {
-        itemsHtml = items.map(i => {
-          const nombre = i.nombreProducto || i.producto?.nombre || 'Producto';
-          return `<tr><td style="padding:6px 12px;border:1px solid #ddd;">${nombre}</td><td style="padding:6px 12px;border:1px solid #ddd;text-align:center;">${i.cantidad}</td><td style="padding:6px 12px;border:1px solid #ddd;text-align:right;">S/ ${parseFloat(i.precio).toFixed(2)}</td></tr>`;
-        }).join('');
-      }
 
-      let infoEnvioHtml = '';
-      if (estadoKey === 'pedido enviado' && !esRecojo) {
-        infoEnvioHtml = `
-          <div style="background:#f0f8ff;padding:12px;border-radius:6px;margin:12px 0;">
-            <p style="margin:0;font-size:14px;"><strong>Método de envío:</strong> ${orden.metodoEnvio === 'olva' ? 'Olva' : orden.metodoEnvio || 'N/D'}</p>
-            <p style="margin:4px 0 0;font-size:14px;"><strong>Dirección:</strong> ${[orden.direccion, orden.distrito, orden.provincia, orden.departamento].filter(Boolean).join(', ') || 'N/D'}</p>
-          </div>
-        `;
+      const itemsTable = items.length > 0 ? `
+        <table style="width:100%;border-collapse:collapse;margin:16px 0;">
+          <thead>
+            <tr style="background:#f5f5f5;">
+              <th style="padding:8px 12px;border:1px solid #ddd;text-align:left;">Producto</th>
+              <th style="padding:8px 12px;border:1px solid #ddd;text-align:center;">Cant.</th>
+              <th style="padding:8px 12px;border:1px solid #ddd;text-align:right;">Precio</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${items.map(i => {
+              const nombre = i.nombreProducto || i.producto?.nombre || 'Producto';
+              return `<tr><td style="padding:6px 12px;border:1px solid #ddd;">${nombre}</td><td style="padding:6px 12px;border:1px solid #ddd;text-align:center;">${i.cantidad}</td><td style="padding:6px 12px;border:1px solid #ddd;text-align:right;">S/ ${parseFloat(i.precio).toFixed(2)}</td></tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      ` : '';
+
+      const direccionEnvio = [orden.direccion, orden.distrito, orden.provincia, orden.departamento].filter(Boolean).join(', ');
+      const totalHtml = orden.total ? `<p style="font-size:16px;font-weight:bold;margin:8px 0;">Total: S/ ${parseFloat(orden.total).toFixed(2)}</p>` : '';
+
+      let subject, bodyHtml;
+
+      // ── ENVÍO POR OLVA ──
+      if (!esRecojo) {
+        switch (estadoKey) {
+          case 'procesando pago':
+            subject = `Procesando pago - ${codigo} - SG Studio`;
+            bodyHtml = `
+              <h2 style="color:#000;">SG Studio</h2>
+              <p>Hola <strong>${nombreCliente}</strong>,</p>
+              <p>Estamos verificando tu pago a través de Izipay.</p>
+              <p>En unos momentos recibirás la confirmación por correo.</p>
+              ${itemsTable}
+              ${totalHtml}
+              <p style="color:#666;font-size:13px;">Si tienes alguna consulta, nuestro equipo estará disponible para ayudarte.</p>
+              <hr style="border:none;border-top:1px solid #eee;" />
+              <p style="color:#999;font-size:12px;">SG Studio</p>
+            `;
+            break;
+
+          case 'pago aceptado':
+            subject = `¡Gracias por tu compra! Pedido ${codigo} - SG Studio`;
+            bodyHtml = `
+              <h2 style="color:#000;">SG Studio</h2>
+              <p>Hola <strong>${nombreCliente}</strong>,</p>
+              <p>¡Gracias por elegirnos!</p>
+              <p>Hemos recibido correctamente tu pedido y ya se encuentra en proceso de preparación.</p>
+              <p style="font-size:18px;font-weight:bold;color:#000;">Pedido N° ${codigo}</p>
+              <p>Próximamente recibirás un mensaje al número de WhatsApp registrado, con la información de envío y seguimiento de tu pedido.</p>
+              <h3 style="margin-top:20px;">Resumen de tu compra</h3>
+              ${itemsTable}
+              ${totalHtml}
+              <p>Pronto recibirás una nueva actualización con la información de envío y el seguimiento de tu pedido.</p>
+              <p>Si tienes alguna consulta, nuestro equipo de atención estará disponible para ayudarte.</p>
+              <p>Gracias por confiar en <strong>SG STUDIO</strong>. Estamos seguros de que te encantará tu nueva compra y que podrás armar muchos outfits.</p>
+              <hr style="border:none;border-top:1px solid #eee;" />
+              <p style="color:#999;font-size:12px;">SG Studio</p>
+            `;
+            break;
+
+          case 'pedido enviado':
+            subject = `Tu pedido ${codigo} ha sido enviado - SG Studio`;
+            bodyHtml = `
+              <h2 style="color:#000;">SG Studio</h2>
+              <p>Hola <strong>${nombreCliente}</strong>,</p>
+              <p>Tu pedido ha sido entregado a <strong>OLVA Courier</strong>.</p>
+              <p>Te hemos enviado el número de <strong>tracking</strong> por WhatsApp para que puedas dar seguimiento a tu envío.</p>
+              <div style="background:#f0f8ff;padding:12px;border-radius:6px;margin:12px 0;">
+                <p style="margin:0;font-size:14px;"><strong>Método de envío:</strong> OLVA Courier</p>
+                ${direccionEnvio ? `<p style="margin:4px 0 0;font-size:14px;"><strong>Dirección:</strong> ${direccionEnvio}</p>` : ''}
+              </div>
+              ${itemsTable}
+              ${totalHtml}
+              <p>Gracias por confiar en <strong>SG STUDIO</strong>.</p>
+              <hr style="border:none;border-top:1px solid #eee;" />
+              <p style="color:#999;font-size:12px;">SG Studio</p>
+            `;
+            break;
+
+          case 'pedido entregado':
+            subject = `Tu pedido ${codigo} ha sido entregado - SG Studio`;
+            bodyHtml = `
+              <h2 style="color:#000;">SG Studio</h2>
+              <p>Hola <strong>${nombreCliente}</strong>,</p>
+              <p>Te informamos que tu pedido <strong>${codigo}</strong> ha sido entregado correctamente.</p>
+              <p>Esperamos que disfrutes cada una de las piezas seleccionadas.</p>
+              <p>Si tienes alguna consulta sobre tu compra o necesitas asistencia con un cambio o devolución, nuestro equipo estará disponible para ayudarte.</p>
+              <p>Gracias por confiar en nosotros.</p>
+              <hr style="border:none;border-top:1px solid #eee;" />
+              <p style="color:#999;font-size:12px;">SG STUDIO</p>
+            `;
+            break;
+
+          default:
+            subject = `Tu orden ${codigo} - SG Studio`;
+            bodyHtml = `
+              <h2 style="color:#000;">SG Studio</h2>
+              <p>Hola <strong>${nombreCliente}</strong>,</p>
+              <p>El estado de tu pedido <strong>${codigo}</strong> ha cambiado a: <strong>${estado}</strong>.</p>
+              ${itemsTable}
+              ${totalHtml}
+              <p>Gracias por confiar en SG Studio.</p>
+              <hr style="border:none;border-top:1px solid #eee;" />
+              <p style="color:#999;font-size:12px;">SG Studio</p>
+            `;
+        }
+      } else {
+        // ── RECOJO EN TIENDA ──
+        switch (estadoKey) {
+          case 'procesando pago':
+          case 'pagado':
+            subject = `Pago confirmado - ${codigo} - SG Studio`;
+            bodyHtml = `
+              <h2 style="color:#000;">SG Studio</h2>
+              <p>Hola <strong>${nombreCliente}</strong>,</p>
+              <p>¡Gracias por elegirnos!</p>
+              <p>Hemos recibido tu pago correctamente. Estamos preparando tu pedido para recojo en tienda.</p>
+              <p>Te notificaremos cuando esté listo para que puedas recogerlo.</p>
+              ${itemsTable}
+              ${totalHtml}
+              <p>Si tienes alguna consulta, nuestro equipo estará disponible para ayudarte.</p>
+              <p>Gracias por confiar en <strong>SG STUDIO</strong>.</p>
+              <hr style="border:none;border-top:1px solid #eee;" />
+              <p style="color:#999;font-size:12px;">SG Studio</p>
+            `;
+            break;
+
+          case 'recojo en tienda listo':
+            subject = `Tu pedido ${codigo} está listo para recoger - SG Studio`;
+            bodyHtml = `
+              <h2 style="color:#000;">SG Studio</h2>
+              <p>Hola <strong>${nombreCliente}</strong>,</p>
+              <p>Tu pedido <strong>${codigo}</strong> ya está listo para ser recogido en tienda.</p>
+              <p>Puedes acercarte a nuestra ubicación durante el horario de atención y presentar tu número de pedido al momento del recojo.</p>
+              <div style="background:#f0f8ff;padding:12px;border-radius:6px;margin:12px 0;">
+                <p style="margin:0;font-size:14px;"><strong>Dirección:</strong> Jr. Pizarro 818 – Gal. Plaza Pizarro || Int. 101</p>
+                <p style="margin:4px 0 0;font-size:14px;"><strong>Horario:</strong> Lunes a Sábados de 11:00 am a 08:30 pm</p>
+              </div>
+              <p>Si otra persona recogerá el pedido en tu nombre, por favor comunícate previamente con nuestro equipo.</p>
+              ${itemsTable}
+              ${totalHtml}
+              <p>Gracias por elegirnos y esperamos verte pronto nuevamente.</p>
+              <hr style="border:none;border-top:1px solid #eee;" />
+              <p style="color:#999;font-size:12px;">SG STUDIO</p>
+            `;
+            break;
+
+          case 'entregado':
+          case 'pedido entregado':
+            subject = `Tu pedido ${codigo} ha sido entregado - SG Studio`;
+            bodyHtml = `
+              <h2 style="color:#000;">SG Studio</h2>
+              <p>Hola <strong>${nombreCliente}</strong>,</p>
+              <p>Te informamos que tu pedido <strong>${codigo}</strong> ha sido entregado correctamente por la modalidad de recojo en tienda.</p>
+              <p>Esperamos que disfrutes cada una de las piezas seleccionadas.</p>
+              <p>Si tienes alguna consulta sobre tu compra o necesitas asistencia con un cambio o devolución, nuestro equipo estará disponible para ayudarte.</p>
+              <p>Gracias por confiar en nosotros.</p>
+              <hr style="border:none;border-top:1px solid #eee;" />
+              <p style="color:#999;font-size:12px;">SG STUDIO</p>
+            `;
+            break;
+
+          default:
+            subject = `Tu orden ${codigo} - SG Studio`;
+            bodyHtml = `
+              <h2 style="color:#000;">SG Studio</h2>
+              <p>Hola <strong>${nombreCliente}</strong>,</p>
+              <p>El estado de tu pedido <strong>${codigo}</strong> ha cambiado a: <strong>${estado}</strong>.</p>
+              ${itemsTable}
+              ${totalHtml}
+              <p>Gracias por confiar en SG Studio.</p>
+              <hr style="border:none;border-top:1px solid #eee;" />
+              <p style="color:#999;font-size:12px;">SG Studio</p>
+            `;
+        }
       }
 
       try {
         await transporter.sendMail({
           from: `"SG Studio" <${process.env.SMTP_USER}>`,
           to: orden.email,
-          subject: `Tu orden ${orden.orderId || '#' + orden.id} - ${label} - SG Studio`,
-          html: `
-            <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;">
-              <h2 style="color:#000;">SG Studio</h2>
-              <p>Hola <strong>${orden.nombre || ''}</strong>,</p>
-              <p style="font-size:16px;">${mensajePersonalizado}</p>
-              <p style="font-size:20px;font-weight:bold;color:#000;">${label}</p>
-              ${infoEnvioHtml}
-              ${items.length > 0 ? `
-                <table style="width:100%;border-collapse:collapse;margin:16px 0;">
-                  <thead><tr style="background:#f5f5f5;"><th style="padding:8px 12px;border:1px solid #ddd;text-align:left;">Producto</th><th style="padding:8px 12px;border:1px solid #ddd;">Cant.</th><th style="padding:8px 12px;border:1px solid #ddd;text-align:right;">Precio</th></tr></thead>
-                  <tbody>${itemsHtml}</tbody>
-                </table>
-              ` : ''}
-              <p style="color:#666;font-size:13px;">Gracias por confiar en SG Studio.</p>
-              <hr style="border:none;border-top:1px solid #eee;" />
-              <p style="color:#999;font-size:12px;">SG Studio</p>
-            </div>
-          `,
+          subject,
+          html: `<div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;">${bodyHtml}</div>`,
         });
       } catch (emailError) {
         console.error('Error al enviar email de estado:', emailError);
