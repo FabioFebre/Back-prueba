@@ -418,11 +418,11 @@ router.post("/pago-exitoso", async (req, res) => {
     }
 
    ////CAMBIAR RUTA https://frontend-project-p6uq.onrender.com/
-    res.redirect(`http://localhost:3000/usuario/perfil?ordenId=${nuevaOrden.id}&success=true`);
+    res.redirect(`https://www.sgstudio.shop/usuario/perfil?ordenId=${nuevaOrden.id}&success=true`);
 
   } catch (error) {
     console.log("❌ Error en pago-exitoso:", error);
-    res.redirect('http://localhost:3000/usuario/perfil?success=false');
+    res.redirect('https://www.sgstudio.shop/usuario/perfil?success=false');
   }
 });
 
