@@ -9,8 +9,8 @@ const router = express.Router();
    🔐 CREDENCIALES TEST
    ============================ */
 const USER = "84426447";
-const PASS = "testpassword_kvARN8IKqaHBiXcz6WDpYhmqNWhWWLI5pHkH8ejFNLSfn";
-const HMAC_TEST = "RchKwjeyINw0fOWVikl0jrYiAevWsP0KRU535oYgIXNbx";
+const PASS = "prodpassword_U22t9hmEwHC48TUiQ7zugT066iFokTEbKlyXKJ2WFHsCz";
+const HMAC_TEST = "OnJUyCXQtHqekR3zLpgmKp25jc32vJeARDieRG9SXF0ER";
 
 /* ============================
    Helper: extraer metadata robusta
