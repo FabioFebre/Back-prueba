@@ -268,9 +268,9 @@ router.put('/:id', async (req, res) => {
       if (!esRecojo) {
         switch (estadoKey) {
           case 'procesando pago':
-            subject = `Procesando pago - ${codigo} - SG Studio`;
+            subject = `Procesando pago - ${codigo} - SG STUDIO`;
             bodyHtml = `
-              <h2 style="color:#000;">SG Studio</h2>
+              <h2 style="color:#000;">SG STUDIO</h2>
               <p>Hola <strong>${nombreCliente}</strong>,</p>
               <p>Estamos verificando tu pago a través de Izipay.</p>
               <p>En unos momentos recibirás la confirmación por correo.</p>
@@ -278,14 +278,14 @@ router.put('/:id', async (req, res) => {
               ${totalHtml}
               <p style="color:#666;font-size:13px;">Si tienes alguna consulta, nuestro equipo estará disponible para ayudarte.</p>
               <hr style="border:none;border-top:1px solid #eee;" />
-              <p style="color:#999;font-size:12px;">SG Studio</p>
+              <p style="color:#999;font-size:12px;">SG STUDIO</p>
             `;
             break;
 
           case 'pago aceptado':
-            subject = `¡Gracias por tu compra! Pedido ${codigo} - SG Studio`;
+            subject = `¡Gracias por tu compra! Pedido ${codigo} - SG STUDIO`;
             bodyHtml = `
-              <h2 style="color:#000;">SG Studio</h2>
+              <h2 style="color:#000;">SG STUDIO</h2>
               <p>Hola <strong>${nombreCliente}</strong>,</p>
               <p>¡Gracias por elegirnos!</p>
               <p>Hemos recibido correctamente tu pedido y ya se encuentra en proceso de preparación.</p>
@@ -297,18 +297,19 @@ router.put('/:id', async (req, res) => {
               <p>Pronto recibirás una nueva actualización con la información de envío y el seguimiento de tu pedido.</p>
               <p>Si tienes alguna consulta, nuestro equipo de atención estará disponible para ayudarte.</p>
               <p>Gracias por confiar en <strong>SG STUDIO</strong>. Estamos seguros de que te encantará tu nueva compra y que podrás armar muchos outfits.</p>
+              <p>Atentamente,</p>
               <hr style="border:none;border-top:1px solid #eee;" />
-              <p style="color:#999;font-size:12px;">SG Studio</p>
+              <p style="color:#999;font-size:12px;">SG STUDIO</p>
             `;
             break;
 
           case 'pedido enviado':
-            subject = `Tu pedido ${codigo} ha sido enviado - SG Studio`;
+            subject = `Tu pedido ${codigo} ha sido enviado - SG STUDIO`;
             bodyHtml = `
-              <h2 style="color:#000;">SG Studio</h2>
+              <h2 style="color:#000;">SG STUDIO</h2>
               <p>Hola <strong>${nombreCliente}</strong>,</p>
               <p>Tu pedido ha sido entregado a <strong>OLVA Courier</strong>.</p>
-              <p>Te hemos enviado el número de <strong>tracking</strong> por WhatsApp para que puedas dar seguimiento a tu envío.</p>
+              <p>Se enviará el tracking de envío por WhatsApp para que puedas dar seguimiento a tu pedido.</p>
               <div style="background:#f0f8ff;padding:12px;border-radius:6px;margin:12px 0;">
                 <p style="margin:0;font-size:14px;"><strong>Método de envío:</strong> OLVA Courier</p>
                 ${direccionEnvio ? `<p style="margin:4px 0 0;font-size:14px;"><strong>Dirección:</strong> ${direccionEnvio}</p>` : ''}
@@ -317,14 +318,14 @@ router.put('/:id', async (req, res) => {
               ${totalHtml}
               <p>Gracias por confiar en <strong>SG STUDIO</strong>.</p>
               <hr style="border:none;border-top:1px solid #eee;" />
-              <p style="color:#999;font-size:12px;">SG Studio</p>
+              <p style="color:#999;font-size:12px;">SG STUDIO</p>
             `;
             break;
 
           case 'pedido entregado':
-            subject = `Tu pedido ${codigo} ha sido entregado - SG Studio`;
+            subject = `Tu pedido ${codigo} ha sido entregado - SG STUDIO`;
             bodyHtml = `
-              <h2 style="color:#000;">SG Studio</h2>
+              <h2 style="color:#000;">SG STUDIO</h2>
               <p>Hola <strong>${nombreCliente}</strong>,</p>
               <p>Te informamos que tu pedido <strong>${codigo}</strong> ha sido entregado correctamente.</p>
               <p>Esperamos que disfrutes cada una de las piezas seleccionadas.</p>
@@ -335,17 +336,37 @@ router.put('/:id', async (req, res) => {
             `;
             break;
 
-          default:
-            subject = `Tu orden ${codigo} - SG Studio`;
+          case 'recojo en tienda listo':
+            subject = `Tu pedido ${codigo} está listo para recoger - SG STUDIO`;
             bodyHtml = `
-              <h2 style="color:#000;">SG Studio</h2>
+              <h2 style="color:#000;">SG STUDIO</h2>
+              <p>Hola <strong>${nombreCliente}</strong>,</p>
+              <p>Tu pedido <strong>${codigo}</strong> ya está listo para ser recogido en tienda.</p>
+              <p>Puedes acercarte a nuestra ubicación durante el horario de atención y presentar tu número de pedido al momento del recojo.</p>
+              <div style="background:#f0f8ff;padding:12px;border-radius:6px;margin:12px 0;">
+                <p style="margin:0;font-size:14px;"><strong>Dirección:</strong> Jr. Pizarro 818 – Gal. Plaza Pizarro || Int. 101</p>
+                <p style="margin:4px 0 0;font-size:14px;"><strong>Horario:</strong> Lunes a Sábados de 11:00 am a 08:30 pm</p>
+              </div>
+              <p>Si otra persona recogerá el pedido en tu nombre, por favor comunícate previamente con nuestro equipo.</p>
+              ${itemsTable}
+              ${totalHtml}
+              <p>Gracias por elegirnos y esperamos verte pronto nuevamente.</p>
+              <hr style="border:none;border-top:1px solid #eee;" />
+              <p style="color:#999;font-size:12px;">SG STUDIO</p>
+            `;
+            break;
+
+          default:
+            subject = `Tu orden ${codigo} - SG STUDIO`;
+            bodyHtml = `
+              <h2 style="color:#000;">SG STUDIO</h2>
               <p>Hola <strong>${nombreCliente}</strong>,</p>
               <p>El estado de tu pedido <strong>${codigo}</strong> ha cambiado a: <strong>${estado}</strong>.</p>
               ${itemsTable}
               ${totalHtml}
-              <p>Gracias por confiar en SG Studio.</p>
+              <p>Gracias por confiar en SG STUDIO.</p>
               <hr style="border:none;border-top:1px solid #eee;" />
-              <p style="color:#999;font-size:12px;">SG Studio</p>
+              <p style="color:#999;font-size:12px;">SG STUDIO</p>
             `;
         }
       } else {
@@ -353,9 +374,9 @@ router.put('/:id', async (req, res) => {
         switch (estadoKey) {
           case 'procesando pago':
           case 'pagado':
-            subject = `Pago confirmado - ${codigo} - SG Studio`;
+            subject = `Pago confirmado - ${codigo} - SG STUDIO`;
             bodyHtml = `
-              <h2 style="color:#000;">SG Studio</h2>
+              <h2 style="color:#000;">SG STUDIO</h2>
               <p>Hola <strong>${nombreCliente}</strong>,</p>
               <p>¡Gracias por elegirnos!</p>
               <p>Hemos recibido tu pago correctamente. Estamos preparando tu pedido para recojo en tienda.</p>
@@ -365,14 +386,14 @@ router.put('/:id', async (req, res) => {
               <p>Si tienes alguna consulta, nuestro equipo estará disponible para ayudarte.</p>
               <p>Gracias por confiar en <strong>SG STUDIO</strong>.</p>
               <hr style="border:none;border-top:1px solid #eee;" />
-              <p style="color:#999;font-size:12px;">SG Studio</p>
+              <p style="color:#999;font-size:12px;">SG STUDIO</p>
             `;
             break;
 
           case 'recojo en tienda listo':
-            subject = `Tu pedido ${codigo} está listo para recoger - SG Studio`;
+            subject = `Tu pedido ${codigo} está listo para recoger - SG STUDIO`;
             bodyHtml = `
-              <h2 style="color:#000;">SG Studio</h2>
+              <h2 style="color:#000;">SG STUDIO</h2>
               <p>Hola <strong>${nombreCliente}</strong>,</p>
               <p>Tu pedido <strong>${codigo}</strong> ya está listo para ser recogido en tienda.</p>
               <p>Puedes acercarte a nuestra ubicación durante el horario de atención y presentar tu número de pedido al momento del recojo.</p>
@@ -391,9 +412,9 @@ router.put('/:id', async (req, res) => {
 
           case 'entregado':
           case 'pedido entregado':
-            subject = `Tu pedido ${codigo} ha sido entregado - SG Studio`;
+            subject = `Tu pedido ${codigo} ha sido entregado - SG STUDIO`;
             bodyHtml = `
-              <h2 style="color:#000;">SG Studio</h2>
+              <h2 style="color:#000;">SG STUDIO</h2>
               <p>Hola <strong>${nombreCliente}</strong>,</p>
               <p>Te informamos que tu pedido <strong>${codigo}</strong> ha sido entregado correctamente por la modalidad de recojo en tienda.</p>
               <p>Esperamos que disfrutes cada una de las piezas seleccionadas.</p>
@@ -405,23 +426,23 @@ router.put('/:id', async (req, res) => {
             break;
 
           default:
-            subject = `Tu orden ${codigo} - SG Studio`;
+            subject = `Tu orden ${codigo} - SG STUDIO`;
             bodyHtml = `
-              <h2 style="color:#000;">SG Studio</h2>
+              <h2 style="color:#000;">SG STUDIO</h2>
               <p>Hola <strong>${nombreCliente}</strong>,</p>
               <p>El estado de tu pedido <strong>${codigo}</strong> ha cambiado a: <strong>${estado}</strong>.</p>
               ${itemsTable}
               ${totalHtml}
-              <p>Gracias por confiar en SG Studio.</p>
+              <p>Gracias por confiar en SG STUDIO.</p>
               <hr style="border:none;border-top:1px solid #eee;" />
-              <p style="color:#999;font-size:12px;">SG Studio</p>
+              <p style="color:#999;font-size:12px;">SG STUDIO</p>
             `;
         }
       }
 
       try {
         await transporter.sendMail({
-          from: `"SG Studio" <${process.env.SMTP_USER}>`,
+          from: `"SG STUDIO" <${process.env.SMTP_USER}>`,
           to: orden.email,
           subject,
           html: `<div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;">${bodyHtml}</div>`,
