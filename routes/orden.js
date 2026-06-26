@@ -322,6 +322,7 @@ router.put('/:id', async (req, res) => {
             `;
             break;
 
+          case 'entregado':
           case 'pedido entregado':
             subject = `Tu pedido ${codigo} ha sido entregado - SG STUDIO`;
             bodyHtml = `
