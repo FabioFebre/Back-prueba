@@ -233,7 +233,7 @@ router.put('/:id', async (req, res) => {
     if (estado && orden.email) {
       const estadoKey = estado.toLowerCase();
       const esRecojo = orden.metodoEnvio === 'recojo';
-      const codigo = orden.orderId || '#' + orden.id;
+      const codigo = orden.orderId || orden.orderIdIzipay || '#' + orden.id;
       const nombreCliente = orden.nombre || '';
 
       const items = await OrdenItem.findAll({
