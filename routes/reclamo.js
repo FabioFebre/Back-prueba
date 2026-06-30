@@ -1,6 +1,17 @@
 const express = require('express');
 const router = express.Router();
+const nodemailer = require('nodemailer');
 const { Reclamo } = require('../models');
+
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST || 'smtp.gmail.com',
+  port: parseInt(process.env.SMTP_PORT) || 587,
+  secure: false,
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+  },
+});
 
 router.post('/', async (req, res) => {
   try {
@@ -20,6 +31,36 @@ router.post('/', async (req, res) => {
       mensaje: mensaje || null,
       estado: 'pendiente'
     });
+
+    if (email) {
+      try {
+        const tipoLabel = tipo === 'queja' ? 'Queja' : 'Reclamo';
+        await transporter.sendMail({
+          from: `"SG Studio" <${process.env.SMTP_USER}>`,
+          to: email,
+          subject: `Hemos recibido tu ${tipoLabel} - SG Studio`,
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 520px; margin: 0 auto;">
+              <h2 style="color: #000;">SG Studio</h2>
+              <p>Hola <strong>${nombres} ${apellidos}</strong>,</p>
+              <p>Hemos recibido tu <strong>${tipoLabel}</strong> con el código <strong>#${nuevoReclamo.id}</strong>.</p>
+              <p>Nos pondremos en contacto contigo a la brevedad para brindarte una solución.</p>
+              <hr style="border: none; border-top: 1px solid #eee;" />
+              <p style="color: #666; font-size: 13px;">
+                <strong>Resumen de tu ${tipoLabel.toLowerCase()}:</strong><br />
+                Producto/Servicio: ${productoServicio}<br />
+                Fecha: ${fecha}<br />
+                Detalle: ${detalle}
+              </p>
+              <hr style="border: none; border-top: 1px solid #eee;" />
+              <p style="color: #999; font-size: 12px;">SG Studio - Libro de Reclamaciones</p>
+            </div>
+          `,
+        });
+      } catch (emailErr) {
+        console.error('Error al enviar email de confirmacion:', emailErr);
+      }
+    }
 
     res.status(201).json({ mensaje: 'Reclamo enviado correctamente', reclamo: nuevoReclamo });
   } catch (err) {
