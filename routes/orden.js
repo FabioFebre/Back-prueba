@@ -283,7 +283,7 @@ router.put('/:id', async (req, res) => {
             break;
 
           case 'pago aceptado':
-            subject = `¡Gracias por tu compra! Pedido ${codigo} - SG STUDIO`;
+            subject = `¡Estamos preparando tu pedido! Pedido ${codigo} - SG STUDIO`;
             bodyHtml = `
               <h2 style="color:#000;">SG STUDIO</h2>
               <p>Hola <strong>${nombreCliente}</strong>,</p>
