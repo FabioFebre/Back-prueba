@@ -2,16 +2,25 @@ const express = require('express');
 const router = express.Router();
 const { Reclamo } = require('../models');
 
-// 👉 Crear un nuevo reclamo
 router.post('/', async (req, res) => {
   try {
-    const { usuarioId, ordenId, mensaje } = req.body;
+    const {
+      fecha, tipoDoc, nroDoc, nombres, apellidos, email, telefono, direccion,
+      menoNombres, menoApellidos, menoEmail, menoTelefono, menoDireccion,
+      productoServicio, monto, descripcion, tipo, detalle, pedido,
+      usuarioId, ordenId, mensaje
+    } = req.body;
 
-    if (!usuarioId || !ordenId || !mensaje) {
-      return res.status(400).json({ error: 'Datos incompletos' });
-    }
+    const nuevoReclamo = await Reclamo.create({
+      fecha, tipoDoc, nroDoc, nombres, apellidos, email, telefono, direccion,
+      menoNombres, menoApellidos, menoEmail, menoTelefono, menoDireccion,
+      productoServicio, monto, descripcion, tipo, detalle, pedido,
+      usuarioId: usuarioId || null,
+      ordenId: ordenId || null,
+      mensaje: mensaje || null,
+      estado: 'pendiente'
+    });
 
-    const nuevoReclamo = await Reclamo.create({ usuarioId, ordenId, mensaje });
     res.status(201).json({ mensaje: 'Reclamo enviado correctamente', reclamo: nuevoReclamo });
   } catch (err) {
     console.error(err);
