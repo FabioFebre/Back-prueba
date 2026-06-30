@@ -13,6 +13,16 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+if (process.env.SMTP_USER) {
+  transporter.verify().then(() => {
+    console.log('[Reclamos] Transporte SMTP listo');
+  }).catch((err) => {
+    console.error('[Reclamos] Error verificando transporte SMTP:', err.message);
+  });
+} else {
+  console.warn('[Reclamos] SMTP_USER no configurado — no se enviarán correos');
+}
+
 router.post('/', async (req, res) => {
   try {
     const {
@@ -33,6 +43,7 @@ router.post('/', async (req, res) => {
     });
 
     if (email) {
+      console.log(`[Reclamos] Enviando confirmación a ${email}...`);
       try {
         const tipoLabel = tipo === 'queja' ? 'Queja' : 'Reclamo';
         await transporter.sendMail({
@@ -57,9 +68,12 @@ router.post('/', async (req, res) => {
             </div>
           `,
         });
+        console.log(`[Reclamos] Confirmación enviada a ${email}`);
       } catch (emailErr) {
-        console.error('Error al enviar email de confirmacion:', emailErr);
+        console.error('[Reclamos] Error al enviar email:', emailErr);
       }
+    } else {
+      console.warn('[Reclamos] Reclamo sin email — no se envió confirmación');
     }
 
     res.status(201).json({ mensaje: 'Reclamo enviado correctamente', reclamo: nuevoReclamo });
