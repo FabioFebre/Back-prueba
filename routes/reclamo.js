@@ -126,7 +126,7 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// 👉 Eliminar un reclamo
+// Eliminar un reclamo
 router.delete('/:id', async (req, res) => {
   try {
     const reclamo = await Reclamo.findByPk(req.params.id);
